@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-frontmatter = "*"
+PyGithub = "==1.51"
+sendgrid = "*"
+"markdown2" = "*"
+email-validator = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
