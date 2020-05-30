@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="docdecay",
-    version="0.0.1",
+    version="0.2.0",
     description="Monitor documentation for staleness",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -25,7 +25,14 @@ setup(
     ],
     packages=["decay"],
     include_package_data=True,
-    install_requires=["python-frontmatter", "sendgrid", "PyGithub"],
+    install_requires=[
+        "python-frontmatter",
+        "sendgrid",
+        "PyGithub",
+        "markdown2",
+        "email_validator",
+        "configargparse"
+    ],
     entry_points={
         "console_scripts": [
             "decay=decay.main:main",

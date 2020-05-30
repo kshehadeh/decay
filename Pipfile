@@ -9,6 +9,8 @@ PyGithub = "==1.51"
 sendgrid = "*"
 "markdown2" = "*"
 email-validator = "*"
+configargparse = "*"
+pytest = "*"
 
 [dev-packages]
 
