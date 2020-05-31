@@ -40,11 +40,9 @@ def get_parser():
                              "to any SSO-protected repo")
     parser.add_argument('-s', '--stale_age_in_days', dest="stale_age_in_days", default=30, type=int,
                         help="The number of days of no activity after which a file is considered to be stale.")
-    parser.add_argument('-e', '--email_owner', dest="email_owner", type=bool, default=False,
-                        help="Set to 'true' if the script should email the owner of stale files.")
     parser.add_argument('-k', '--sendgrid_api_key', dest="sendgrid_api_key", required=False,
-                        help="This is the sendgrid api key to use when email_owner is set to True.  This value IS "
-                             "required if email_owner is set to true. ")
+                        help="This is the sendgrid api key to use when an action is being performed that requires email"
+                             "to be sent. This IS required if one of the actions requested requires email sending.")
     parser.add_argument('-r', '--from_email', dest="from_email", required=False, default="noreply@underarmour.com",
                         help="This is the email that sent emails will appear to come from")
     parser.add_argument('-x', '--extensions', dest="extensions", required=False, default=".md,.html",
@@ -52,8 +50,6 @@ def get_parser():
     parser.add_argument('-m', '--administrator', dest="administrator", required=False,
                         help="The admin will receive the admin report (if arg set) and any emails that would be sent "
                              "to an owner - but one does not exist.")
-    parser.add_argument('-p', '--admin_report', dest="admin_report", required=False, default="md,html",
-                        help="These are the file extensions that will be checked within the given root")
     return parser
 
 

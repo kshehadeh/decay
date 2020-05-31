@@ -15,7 +15,7 @@ def send_results(all_file_analyses: List[FileAnalysis], context: DocCheckerConte
 
         # Group all the analyses into lists under each email recipient.
         for a in all_file_analyses:
-            if not a.file_changed_recently and context.email_owner_if_stale:
+            if not a.file_changed_recently:
                 email = a.owner if a.owner else context.administrator
                 if not email:
                     warning(
