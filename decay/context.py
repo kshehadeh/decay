@@ -23,19 +23,18 @@ class DocCheckerContext:
         self.github_repo_path = args.github_repo_folder
         self.github_token = args.github_access_token
         self.doc_is_stale_after_days = args.stale_age_in_days
-        self.email_owner_if_stale = args.email_owner
         self.sendgrid_api_key = args.sendgrid_api_key
         self.from_email = args.from_email
-        self.admin_report = args.admin_report
         self.administrator = args.administrator
         self.extensions = args.extensions.split(",")
         self.ignore_paths = list(map(lambda x: remove_leading_trailing_slashes(x), args.ignore_paths))
         self.ignore_files = list(map(lambda x: remove_leading_trailing_slashes(x), args.ignore_files))
         self.ref_with_changes: GitRef = None
 
-        if self.admin_report is True and not self.administrator:
+        if ACTION_SEND_ADMIN_REPORT in self.actions and not self.administrator:
             parser.error(
-                "With 'admin_report' set, you must specify an administrator email using 'administrator' argument")
+                "With the send_admin_report action, you must specify an administrator email using 'administrator' "
+                "argument")
 
         if self.administrator:
             try:
@@ -51,7 +50,7 @@ class DocCheckerContext:
             except EmailNotValidError as e:
                 parser.error(f"{self.from_email} is not a valid email address: " + str(e))
 
-        if self.email_owner_if_stale or self.admin_report:
+        if ACTION_EMAIL_OWNER in self.actions or ACTION_SEND_ADMIN_REPORT in self.actions:
             if not self.sendgrid_api_key:
                 parser.error(f"You must specify a sendgrid token if you are sending owner or admin reports via email")
 

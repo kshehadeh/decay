@@ -1,8 +1,11 @@
 # decay
-This tool will validate that a given folder within a git repository contains documents that have been updated within a set period of time. The intention is to help keep documentation as fresh as possible.  After `STALE_AGE_IN_DAYS` days have passed since the last commit, the document is said to beging decaying.    
+![Decay Logo](./docs/tooth-64.png)
+Decay is a documentation tool for analyzing existing documentation.  The goal of the tool is to help documentation maintainers track the age of the documentation and help to ensure that it remains up-to-date.   
 
 ## Usage
-This script is meant to be used as part of a CI process such as Github Actions or Circle CI.  You can specify the configuration either in a yaml file, in the environment or on the command-line.    
+The tool performs actions each with different purposes.  It can generate reports to send to doc owners, generate reports to send to 'administrators' of the documentation and it can update the docs themselves indicating whether they are out of date (assuming they use frontmatter).  See `actions` section below for more information about how to use each.  
+
+In general, this tool is meant to be used as part of a CI process such as Github Actions or Circle CI.  You can specify the configuration either in a yaml file, in the environment or on the command-line or some combination of any of those three.    
 
 Example configuration:
 
@@ -13,9 +16,7 @@ github_owner: "underarmour"
 github_repo: "infra"
 github_repo_folder: "/"
 github_access_token: "<token>"
-email_owner: "true"
 administrator: "myemail@domain.com"
-admin_report: "true"
 github_branch: "master"
 from_email: "noreply@domain.com"
 sendgrid_api_key: "<key>"
@@ -36,13 +37,12 @@ also specify a configuration location of your choice.
 And of course you can use command line arguments for all configuration:
 
 ```bash
-~> decay --github_owner="underarmour" \ 
+~> decay email_owner send_admin_report \ 
+        --github_owner="underarmour" \ 
          --github_repo="infra" \
          --github_repo_folder="/" \
          --github_access_token="<token>" \
-         --email_owner="true" \
          --administrator="myemail@domain.com" \
-         --admin_report="true" \
          --github_branch="master" \
          --from_email="noreply@domain.com" \
          --sendgrid_api_key="<key>" \
@@ -57,8 +57,17 @@ Decay can perform multiple actions either in one command run or separately as pa
 ### `email_owner`
 Sends a single message containing a list of all the documents that are fall outside of the "fresh" range of dates specified in the configuration.  For example, if you have set `STALE_AGE_IN_DAYS` to 30 and a doc has not been updated in 31 then an email will be sent to the owner of that file.  If no owner has been specified then the administrator will be notified. If no admin has been passed into the command then an error message will be shown during command run.
 
+**Required arguments:**
+* from_email
+* sendgrid_api_key
+
 ### `send_admin_report`
 Send a single email to the administrator with a list of all the documents being reviewed along with the age and the last editor of each.  This is meant to be used to provide a full state of documentation for a given repo (or sub-repo).
+
+**Required arguments:**
+* administrator
+* from_email
+* sendgrid_api_key
 
 ### `mark`
 Rather than sending an email to owners or administrators, this will update the document itself with the new state.  For example, if the doc has not be updated in over `STALE_AGE_IN_DAYS` then `out_of_date` will be set to `true`.  
@@ -67,11 +76,17 @@ Each file updated is done as a separate commit - for that reason, it makes the c
 
 It is recommended that when merging the PR that you use the `Squash and Merge` option - especially if a lot of files have changed.
 
+**Required arguments:**
+* _None_
+
+
 ## File Types
 While it is designed to help identify stale documentation, it can be used for any type of file within a given root. By default it looks for markdown and html files.  But you can change the file types using the `--extensions` argument.  
 
 ## Owners
-If the files that are being checked have frontmatter sections at the top of the file, it will look for an `owner` field which, if it's an email, will be used to notify that owner of stale documentation if the `email_owner` property is set to `true`.  
+In the decay parlance, an owner is anyone who is responsible for keeping documentation up to date.  Not all documentation has an owner.  In the cases where no owner is found and an administrator has been specified, then the admin is assumed to be the owner.
+
+To specify an owner, the document must have a frontmatter section at the top of the file.  In that frontmatter, you must specify an "owner" which is an email address.  It is this email that is used to send owner reports.
 
 Example of frontmatter with owner property:
 ```
@@ -91,11 +106,12 @@ owner: bob@email.com
 ```
 
 ## Administrator
-There is also the notion of an administrator.  The administrator is the person that, if `email_owner` is set but an owner could not be found, will receive the notification emails.  If `send_admin_report` is true then the administrator will also receive a report of all the files that were checked, their age, which are now considered stale and who the last person to change the file was.
+There is also the notion of an administrator.  An administrator is the person who is responsible for the body of documentation being analyzed.  An admin and an owner can be the same person if there is no specific owner specified for a given document.  In fact, if a report is requested for 'owners' then the admin is assumed if no owner is specified (see _Reports_ below).
 
 ## Reports
 There are two types of reports: owner and admin.  
 
+### Owner Report
 The owner report is sent to anyone who is marked as an owner of at least one document that is beginning to decay.  For example, if there is a folder that looks like this:
 
 ```
@@ -106,6 +122,9 @@ The owner report is sent to anyone who is marked as an owner of at least one doc
 ```
 
 In this case, two owner reports will be sent out.  The first will contain exactly one file (index.md) and be sent to bob@.  The other will contain only file and will be sent to john@.  Notice that info.md is not sent anywhere because it hasn't be tagged as decaying. 
+
+### Admin Report
+The admin report is sent to the administrator after command execution.  Unlike the owner report, this report contains information about every document in the body of documentation being examined.  Information in the report includes things like document age, last editor, etc.
 
 
   
@@ -118,20 +137,22 @@ Arguments can be provided either on the command line, in environment variables o
 3. Config File
 
 ```
-usage: main.py [-h] [-c CONFIG] -o GITHUB_OWNER -g GITHUB_REPO -f
-               GITHUB_REPO_FOLDER [-b GITHUB_BRANCH] -a GITHUB_ACCESS_TOKEN
-               [-s STALE_AGE_IN_DAYS] [-e EMAIL_OWNER] [-k SENDGRID_API_KEY]
-               [-r FROM_EMAIL] [-x EXTENSIONS] [-m ADMINISTRATOR]
-               [-p ADMIN_REPORT]
+usage: main.py [-h] [-c CONFIG] -o GITHUB_OWNER [-i IGNORE_PATHS]
+               [-n IGNORE_FILES] -g GITHUB_REPO -f GITHUB_REPO_FOLDER
+               [-b GITHUB_BRANCH] -a GITHUB_ACCESS_TOKEN
+               [-s STALE_AGE_IN_DAYS] [-k SENDGRID_API_KEY] [-r FROM_EMAIL]
+               [-x EXTENSIONS] [-m ADMINISTRATOR]
+               ACTION [ACTION ...]
 
-Generate reports on documentation decay 
-
-Args that start with '--' (eg. -o) can
+Generate reports on documentation decay Args that start with '--' (eg. -o) can
 also be set in a config file (./decay.yml or specified via -c). The config
 file uses YAML syntax and must represent a YAML 'mapping' (for details, see
 http://learn.getgrav.org/advanced/yaml). If an arg is specified in more than
 one place, then commandline values override config file values which override
 defaults.
+
+positional arguments:
+  ACTION
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -139,6 +160,13 @@ optional arguments:
                         Path to YAML configuration file
   -o GITHUB_OWNER, --github_owner GITHUB_OWNER
                         The organization name is the owner
+  -i IGNORE_PATHS, --ignore_path IGNORE_PATHS
+                        Use this for each path that should be skipped by the
+                        decay detector.
+  -n IGNORE_FILES, --ignore_file IGNORE_FILES
+                        Use this for each file that should be skipped by the
+                        decay detector. This should be the path to the file in
+                        the repo.
   -g GITHUB_REPO, --github_repo GITHUB_REPO
                         The repository name (excluding the path)
   -f GITHUB_REPO_FOLDER, --github_repo_folder GITHUB_REPO_FOLDER
@@ -154,13 +182,11 @@ optional arguments:
   -s STALE_AGE_IN_DAYS, --stale_age_in_days STALE_AGE_IN_DAYS
                         The number of days of no activity after which a file
                         is considered to be stale.
-  -e EMAIL_OWNER, --email_owner EMAIL_OWNER
-                        Set to 'true' if the script should email the owner of
-                        stale files.
   -k SENDGRID_API_KEY, --sendgrid_api_key SENDGRID_API_KEY
-                        This is the sendgrid api key to use when email_owner
-                        is set to True. This value IS required if email_owner
-                        is set to true.
+                        This is the sendgrid api key to use when an action is
+                        being performed that requires emailto be sent. This IS
+                        required if one of the actions requested requires
+                        email sending.
   -r FROM_EMAIL, --from_email FROM_EMAIL
                         This is the email that sent emails will appear to come
                         from
@@ -171,8 +197,19 @@ optional arguments:
                         The admin will receive the admin report (if arg set)
                         and any emails that would be sent to an owner - but
                         one does not exist.
-  -p ADMIN_REPORT, --admin_report ADMIN_REPORT
-                        These are the file extensions that will be checked
-                        within the given root
+```
 
+## Development
+
+To prepare for development you must have pipenv:
+
+```
+~> pipenv install
+```
+
+To deploy, first change the version number in setup.py then:
+
+```
+~> python setup.py sdist
+~> python -m twine upload dist/*
 ```
