@@ -11,6 +11,12 @@ sendgrid = "*"
 email-validator = "*"
 configargparse = "*"
 pytest = "*"
+cement = "*"
+munch = "*"
+requests = "*"
+typing = "*"
+arrow = "*"
+pyfluence = "==0.2.1"
 
 [dev-packages]
 

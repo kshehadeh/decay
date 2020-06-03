@@ -15,7 +15,7 @@ def create_ref(ctx: DocCheckerContext) -> GitRef:
     return ctx.repo_ob.create_git_ref(ref=f'refs/heads/{branch_name}', sha=source_branch.commit.sha)
 
 
-def mark_files(all_file_analyses: List[FileAnalysis], ctx: DocCheckerContext) -> PullRequest:
+def mark_github_files(all_file_analyses: List[FileAnalysis], ctx: DocCheckerContext) -> PullRequest:
     """
     This will update the given file in the repository based on the results of the file analyses.  It will create
     multiple commits but assemble them together into a PR which can be squashed before merge (manually).
@@ -60,7 +60,7 @@ def update_file(ctx, file):
     if len(props_to_change) == 0:
         return None
 
-    gh_file: ContentFile = ctx.repo_ob.get_contents(file.file_path)
+    gh_file: ContentFile = ctx.repo_ob.get_contents(file.file_identifier)
     parsed = frontmatter.loads(gh_file.decoded_content)
     changed = False
 
@@ -82,7 +82,7 @@ def update_file(ctx, file):
             # something went wrong
             error("There was a problem while creating a branch to host marker changes", 1)
 
-        new_commit, _ = ctx.repo_ob.update_file(path=file.file_path,
+        new_commit, _ = ctx.repo_ob.update_file(path=file.file_identifier,
                                                 message="decay updated these fields: " + ",".join(
                                                     props_to_change.keys()),
                                                 content=frontmatter.dumps(parsed),

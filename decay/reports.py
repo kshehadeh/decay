@@ -18,7 +18,7 @@ body_template = \
 
 ### Stale Docs
 
-| Path   | Age (Days) | Changed By | Link      |
+| Name   | Age (Days) | Changed By | Link      |
 |--------|------------|------------| ----------|
 {item_list}
 
@@ -76,9 +76,9 @@ class DocReport(object):
         from_email = sendgrid.Email(self.context.from_email)
         body = []
         for a in self.analyses:
-            stale_days = (datetime.datetime.now() - a.last_change).days if a.last_change else "Never updated"
-            body.append(line_item_template.format(file_path=a.file_path, file_link=a.file_link,
-                                                  changed_by=a.changed_by, stale_days=stale_days))
+            stale_days = (datetime.datetime.now(tz=a.last_change.tzinfo) - a.last_change).days if a.last_change else "Never updated"
+            body.append(line_item_template.format(file_path=a.doc_name, file_link=a.file_link,
+                                                  changed_by=a.changed_by_email, stale_days=stale_days))
 
         plain_text = body_template.format(item_list="\n".join(body),
                                           github_repo=self.context.github_repo,
