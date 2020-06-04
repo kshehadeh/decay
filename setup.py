@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="docdecay",
-    version="0.2.2",
+    version="0.2.4",
     description="Monitor documentation for staleness",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -31,7 +31,8 @@ setup(
         "PyGithub",
         "markdown2",
         "email_validator",
-        "configargparse"
+        "configargparse",
+        "pyfluence"
     ],
     entry_points={
         "console_scripts": [

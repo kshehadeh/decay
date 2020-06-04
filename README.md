@@ -1,6 +1,6 @@
 # decay
-![Decay Logo](./docs/tooth-64.png)
-Decay is a documentation tool for analyzing existing documentation.  The goal of the tool is to help documentation maintainers track the age of the documentation and help to ensure that it remains up-to-date.   
+![Decay Logo](docs/tooth-64.png)
+Decay is a documentation tool for analyzing existing documentation.  The goal of the tool is to help documentation maintainers track the age of the documentation and help to ensure that it remains up-to-date.   The tool can target documentation stored in Github and Confluence.
 
 ## Usage
 The tool performs actions each with different purposes.  It can generate reports to send to doc owners, generate reports to send to 'administrators' of the documentation and it can update the docs themselves indicating whether they are out of date (assuming they use frontmatter).  See `actions` section below for more information about how to use each.  
@@ -49,6 +49,49 @@ And of course you can use command line arguments for all configuration:
          --ignore_path=["/announcements","/_posts", "/legacy","posts/templates/"] \
          --ignore_file=["index.md"] 
 ```
+
+For Confluence, you would replace the github configurations with confluence specific ones:
+
+```yaml
+# ~/decay.yml
+actions: [email_owner,send_admin_report]
+confluence_host: "https://myinstance.atlassian.net/wiki"
+confluence_username: "myusername"
+confluence_password: "<api_token>"
+confluence_parent_page_id: "737509600"
+administrator: "myemail@domain.com"
+from_email: "noreply@domain.com"
+sendgrid_api_key: "<key>"
+```
+```bash
+~> decay 
+```
+
+## Targets
+
+Documentation stored in Github or Confluence can be acted upon using the same general commands.  The only difference are the arguments used to point to the target documentation.  
+
+### Github
+Github documentation is identified by owner, repo and path.  So for example if you Jeff has a repo called MyDocs and he's interested in scanning everything under the "support" folder, these would be the arguments passed in:
+
+|Property           |   Value       |
+|-------------------|---------------|
+| github_owner      | jeff          |
+| github_repo       | MyDocs        |
+| github_repo_folder| /support      |
+
+And of course, you would need to pass in the API token to use using `github_access_token` argument.  
+
+### Confluence
+For confluence, documentation to target is identified using only the parent page ID.  A page ID is a numeric identifier
+in confluence (e.g. 72172372).  Both that page and all of its children will be analyzed.  
+
+|Property                   |   Value       |
+|---------------------------|---------------|
+| confluence_parent_page_id | 72172372      |
+
+And Confluence requires a hostname (which identifies the server instance), the username and the password.  The password
+must be the user's API token - not the actual login password used to access the UI.
 
 ## Actions
 
