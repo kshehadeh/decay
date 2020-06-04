@@ -180,14 +180,18 @@ Arguments can be provided either on the command line, in environment variables o
 3. Config File
 
 ```
-usage: main.py [-h] [-c CONFIG] -o GITHUB_OWNER [-i IGNORE_PATHS]
-               [-n IGNORE_FILES] -g GITHUB_REPO -f GITHUB_REPO_FOLDER
-               [-b GITHUB_BRANCH] -a GITHUB_ACCESS_TOKEN
-               [-s STALE_AGE_IN_DAYS] [-k SENDGRID_API_KEY] [-r FROM_EMAIL]
-               [-x EXTENSIONS] [-m ADMINISTRATOR]
+usage: main.py [-h] [-c CONFIG] [-s STALE_AGE_IN_DAYS] [-x EXTENSIONS]
+               [-i IGNORE_PATHS] [-n IGNORE_FILES]
+               [--confluence_hostname CONFLUENCE_HOSTNAME]
+               [--confluence_username CONFLUENCE_USERNAME]
+               [--confluence_password CONFLUENCE_PASSWORD]
+               [--confluence_parent_page_id CONFLUENCE_PARENT_PAGE_ID]
+               [-o GITHUB_OWNER] [-g GITHUB_REPO] [-f GITHUB_REPO_FOLDER]
+               [-b GITHUB_BRANCH] [-a GITHUB_ACCESS_TOKEN]
+               [-k SENDGRID_API_KEY] [-r FROM_EMAIL] [-m ADMINISTRATOR]
                ACTION [ACTION ...]
 
-Generate reports on documentation decay Args that start with '--' (eg. -o) can
+Generate reports on documentation decay Args that start with '--' (eg. -s) can
 also be set in a config file (./decay.yml or specified via -c). The config
 file uses YAML syntax and must represent a YAML 'mapping' (for details, see
 http://learn.getgrav.org/advanced/yaml). If an arg is specified in more than
@@ -201,8 +205,12 @@ optional arguments:
   -h, --help            show this help message and exit
   -c CONFIG, --config CONFIG
                         Path to YAML configuration file
-  -o GITHUB_OWNER, --github_owner GITHUB_OWNER
-                        The organization name is the owner
+  -s STALE_AGE_IN_DAYS, --stale_age_in_days STALE_AGE_IN_DAYS
+                        The number of days of no activity after which a file
+                        is considered to be stale.
+  -x EXTENSIONS, --extensions EXTENSIONS
+                        These are the file extensions that will be checked
+                        within the given root
   -i IGNORE_PATHS, --ignore_path IGNORE_PATHS
                         Use this for each path that should be skipped by the
                         decay detector.
@@ -210,6 +218,19 @@ optional arguments:
                         Use this for each file that should be skipped by the
                         decay detector. This should be the path to the file in
                         the repo.
+  --confluence_hostname CONFLUENCE_HOSTNAME
+                        The hostname of the confluence instance (e.g.
+                        https://myinstance.atlassian.net)
+  --confluence_username CONFLUENCE_USERNAME
+                        In most cases, this is an email address
+  --confluence_password CONFLUENCE_PASSWORD
+                        In the latest version of Confluence, your password
+                        must be a generate API token - not your actual
+                        password
+  --confluence_parent_page_id CONFLUENCE_PARENT_PAGE_ID
+                        The parent page under which pages should be analyzed.
+  -o GITHUB_OWNER, --github_owner GITHUB_OWNER
+                        The organization name is the owner
   -g GITHUB_REPO, --github_repo GITHUB_REPO
                         The repository name (excluding the path)
   -f GITHUB_REPO_FOLDER, --github_repo_folder GITHUB_REPO_FOLDER
@@ -222,9 +243,6 @@ optional arguments:
                         The personal access token to use - keeping in mind
                         that the token needs to have access to any SSO-
                         protected repo
-  -s STALE_AGE_IN_DAYS, --stale_age_in_days STALE_AGE_IN_DAYS
-                        The number of days of no activity after which a file
-                        is considered to be stale.
   -k SENDGRID_API_KEY, --sendgrid_api_key SENDGRID_API_KEY
                         This is the sendgrid api key to use when an action is
                         being performed that requires emailto be sent. This IS
@@ -233,9 +251,6 @@ optional arguments:
   -r FROM_EMAIL, --from_email FROM_EMAIL
                         This is the email that sent emails will appear to come
                         from
-  -x EXTENSIONS, --extensions EXTENSIONS
-                        These are the file extensions that will be checked
-                        within the given root
   -m ADMINISTRATOR, --administrator ADMINISTRATOR
                         The admin will receive the admin report (if arg set)
                         and any emails that would be sent to an owner - but
